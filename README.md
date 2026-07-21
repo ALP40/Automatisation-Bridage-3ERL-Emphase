@@ -335,9 +335,10 @@ même pendant les périodes de bridage.
 ## Crédits
 
 - **3ERL** — [https://3erl.fr](https://3erl.fr) — API publique de bridage
-- **Mathieu Carbou** — [gist original](https://gist.github.com/mathieucarbou/8d83d25247821e85a693dea61fe4f0d2) dont ce projet est adapté
-- **Enphase** — Documentation Envoy-S Metered EU, port DRM
-- **Shelly** — Shelly 1 Mini Gen3, scripting mJS
+- **Mathieu Carbou** — [https://github.com/mathieucarbou](https://github.com/mathieucarbou) — [gist original](https://gist.github.com/mathieucarbou/8d83d25247821e85a693dea61fe4f0d2) dont ce projet est adapté
+- **Enphase** — [https://enphase.com](https://enphase.com) — Documentation Envoy-S Metered EU, port DRM
+- **SiSol** — [https://sisol.fr](https://sisol.fr) — Plateforme d'autoconsommation collective (ACC)
+- **Shelly** — [https://shelly.com](https://shelly.com) — Shelly 1 Mini Gen3, scripting mJS
 
 ---
 

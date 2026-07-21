@@ -41,7 +41,7 @@ pics de production solaire collective (printemps/été, milieu de journée) —
 
 3ERL publie un signal de bridage (`Bridage = 1`) pour indiquer quand ne pas
 injecter. Ce projet automatise la coupure de l'injection via le port **DRM**
-de la passerelle Enphase, piloté par un relais Shelly Plus 1.
+de la passerelle Enphase, piloté par un relais Shelly 1 Mini Gen3.
 
 En autoconsommation collective (**ACC**), le champ `Bridage_CDC` est utilisé
 à la place : la valorisation est au PRE+ du quart d'heure en cours.
@@ -90,7 +90,7 @@ En autoconsommation collective (**ACC**), le champ `Bridage_CDC` est utilisé
 ### Avec Home Assistant (optionnel — monitoring)
 
 ```
-Shelly autonome (bridage) ──────────────────────────────────┐
+ autonome (bridage) ──────────────────────────────────┐
                                                             │
 Home Assistant                                              │
   • REST sensor 3ERL (toutes les 15 min)                    │
@@ -99,7 +99,7 @@ Home Assistant                                              │
   • Historique graphique 24h                                │
   • Override manuel (mode On / Off)          ──────────────►│
                                                             ▼
-                                               switch.buanderie_shelly_emphase
+                                               switch.buanderie__emphase
 ```
 
 ---
@@ -110,9 +110,9 @@ Home Assistant                                              │
 .
 ├── README.md
 │
-├── shelly/
-│   ├── shelly_3erl_aci.js          # Script autonome mode ACI
-│   └── shelly_3erl_acc.js          # Script autonome mode ACC
+├── /
+│   ├── _3erl_aci.js          # Script autonome mode ACI
+│   └── _3erl_acc.js          # Script autonome mode ACC
 │
 ├── home-assistant/                  # OPTIONNEL — monitoring uniquement
 │   ├── packages/
@@ -162,13 +162,13 @@ Chemin : **Appareils → Passerelle → Limiter la production via relais sur Por
 
 ---
 
-### 2. Câblage Shelly Plus 1 → Envoy
+### 2. Câblage Shelly 1 Mini Gen3 → Envoy
 
 Les bornes **Com** et **1/5** de l'Envoy sont des entrées numériques basse
 tension. **Ne jamais connecter du 230V sur ces bornes.**
 
 ```
-Shelly Plus 1              Envoy-S Metered EU
+Shelly 1 Mini Gen3         Envoy-S Metered EU
   Borne O (Output)  ────►  Borne Com
   Borne I (Input)   ────►  Borne 1/5  (Relay 1)
 
@@ -189,7 +189,7 @@ Shelly Plus 1              Envoy-S Metered EU
 
 ### 3. Script Shelly (mode autonome)
 
-Le script tourne **directement sur le Shelly Plus 1**, sans aucune dépendance
+Le script tourne **directement sur le Shelly 1 Mini Gen3 **, sans aucune dépendance
 externe. Il interroge l'API 3ERL et pilote son propre relais.
 
 **Choisir le bon script :**
@@ -310,7 +310,7 @@ même pendant les périodes de bridage.
 - **3ERL** — [https://3erl.fr](https://3erl.fr) — API publique de bridage
 - **Mathieu Carbou** — [gist original](https://gist.github.com/mathieucarbou/8d83d25247821e85a693dea61fe4f0d2) dont ce projet est adapté
 - **Enphase** — Documentation Envoy-S Metered EU, port DRM
-- **Shelly** — Shelly Plus 1, scripting mJS
+- **Shelly** — Shelly 1 Mini Gen3, scripting mJS
 
 ---
 

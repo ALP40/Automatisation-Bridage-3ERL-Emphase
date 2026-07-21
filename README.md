@@ -20,7 +20,7 @@
 - [Fichiers du projet](#fichiers-du-projet)
 - [Installation](#installation)
   - [1. Passerelle Enphase Enlighten Manager](#1-passerelle-enphase-enlighten-manager)
-  - [2. Câblage Shelly Plus 1 → Envoy](#2-câblage-shelly-plus-1--envoy)
+  - [2. Câblage Shelly 1 Mini Gen3 → Envoy](#2-câblage-shelly-plus-1--envoy)
   - [3. Script Shelly (mode autonome)](#3-script-shelly-mode-autonome)
   - [4. Home Assistant (optionnel)](#4-home-assistant-optionnel)
 - [API 3ERL](#api-3erl)

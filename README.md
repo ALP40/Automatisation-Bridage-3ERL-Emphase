@@ -184,7 +184,7 @@ Chemin : **Appareils → Passerelle → Limiter la production via relais sur Por
 > ⚠️ **Mode ACC — calcul du talon Level 2 :**
 > ```
 > % Level 2 = (talon_maison_W + talon_total_voisins_ACC_W) / puissance_AC_W × 100
-> Exemple : (200 + 500) / 6000 × 100 = 11.7 % → arrondir à 12 %
+> Exemple : (200 + 500) / votre_puissance_AC_W × 100 → arrondir au % supérieur
 > ```
 
 ---

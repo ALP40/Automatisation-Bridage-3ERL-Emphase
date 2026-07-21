@@ -1,11 +1,11 @@
-# Bridage 3ERL — Enphase Envoy-S Metered EU + Shelly 1 Mini Gen3
+# Bridage 3ERL — Enphase Envoy-S Metered EU + Shelly
 
 > Coupure automatique de l'injection solaire sur signal de prix négatif 3ERL,
-> via un contact sec Shelly Plus 1 sur le port DRM de la passerelle Enphase.
-> **Fonctionnement 100 % autonome — sans Home Assistant, sans batterie.**
+> via un contact sec Shelly sur le port DRM de la passerelle Enphase.
+> **Fonctionnement 100 % autonome — sans Home Assistant requis.**
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Platform: Shelly](https://img.shields.io/badge/Platform-Shelly%20Plus%201-blue)
+![Platform: Shelly](https://img.shields.io/badge/Platform-Shelly%20Gen2%2FGen3-blue)
 ![Hardware: Enphase Envoy-S Metered EU](https://img.shields.io/badge/Hardware-Enphase%20Envoy--S%20Metered%20EU-orange)
 ![Firmware: d8.3.5528](https://img.shields.io/badge/Firmware-d8.3.5528-green)
 ![HA: Optionnel](https://img.shields.io/badge/Home%20Assistant-Optionnel-lightgrey)
@@ -20,7 +20,7 @@
 - [Fichiers du projet](#fichiers-du-projet)
 - [Installation](#installation)
   - [1. Passerelle Enphase Enlighten Manager](#1-passerelle-enphase-enlighten-manager)
-  - [2. Câblage Shelly 1 Mini Gen3 → Envoy](#2-câblage-shelly-plus-1--envoy)
+  - [2. Câblage Shelly → Envoy](#2-câblage-shelly--envoy)
   - [3. Script Shelly (mode autonome)](#3-script-shelly-mode-autonome)
   - [4. Home Assistant (optionnel)](#4-home-assistant-optionnel)
 - [API 3ERL](#api-3erl)
@@ -33,7 +33,22 @@
 
 ## Contexte
 
-En autoconsommation individuelle (**ACI**) avec **3ERL**, la rémunération du
+### Qu'est-ce que 3ERL ?
+
+[3ERL](https://3erl.fr) est une **association loi 1901** qui joue le rôle de
+**Responsable d'Équilibre** sur le marché de l'électricité français. Elle permet
+aux particuliers en autoconsommation de vendre leur surplus solaire au **prix du
+marché spot (PRE+)** plutôt qu'au tarif fixe d'EDF OA, sans abonnement ni frais
+d'entrée — l'association se rémunère uniquement par une commission sur les gains
+générés.
+
+3ERL publie en temps réel une **API publique** (`https://3erl.fr/api.json`) qui
+expose notamment un signal de bridage mis à jour toutes les 15 minutes, indiquant
+aux producteurs quand il est déconseillé d'injecter sur le réseau.
+
+### Pourquoi brider l'injection ?
+
+En autoconsommation individuelle (**ACI**) avec 3ERL, la rémunération du
 surplus injecté est calculée en **moyenne pondérée journalière** (champ `PRD4`).
 Si cette moyenne devient négative en fin de journée — ce qui arrive lors des
 pics de production solaire collective (printemps/été, milieu de journée) —
@@ -53,9 +68,21 @@ En autoconsommation collective (**ACC**), le champ `Bridage_CDC` est utilisé
 | Composant | Modèle | Firmware / Version |
 |---|---|---|
 | Passerelle solaire | Enphase Envoy-S Metered EU | d8.3.5528 |
-| Puissance installée | 16 × 405 Wc = 6.48 kWc | Réf. AC : 6 200 W |
-| Relais de commande | Shelly 1 Mini Gen3| firmware récent |
+| Relais de commande | Shelly 1 Mini Gen3 (S3SW-001X8EU) | 1.7.5 |
 | Domotique | Home Assistant | **Optionnel** — monitoring uniquement |
+
+**Compatibilité Shelly**
+
+Le scripting mJS nécessaire est disponible sur les modèles suivants :
+
+| Modèle | Référence | Compatible |
+|---|---|---|
+| Shelly 1 Mini Gen3 | S3SW-001X8EU | ✅ |
+| Shelly Plus 1 | SNSW-001X16EU | ✅ |
+| Shelly Plus 1PM | SNSW-001P16EU | ✅ |
+| Shelly Pro 1 (rail DIN) | SPSW-001XE16EU | ✅ |
+| Shelly 1 Gen1 | SHSW-1 | ❌ pas de scripting |
+| Shelly 1L Gen1 | SHSW-L | ❌ pas de scripting |
 
 ---
 
@@ -72,7 +99,7 @@ En autoconsommation collective (**ACC**), le champ `Bridage_CDC` est utilisé
 └────────────────────┬────────────────────────────┘
                      │ HTTP GET toutes les 15 min
            ┌─────────▼──────────┐
-           │   Shelly 1 Mini    │  Script mJS autonome
+           │  Shelly 1 Mini Gen3│  Script mJS autonome
            │  (script embarqué) │  Aucune dépendance externe
            └─────────┬──────────┘
                      │ Contact sec  I → 1/5  /  O → Com
@@ -82,15 +109,15 @@ En autoconsommation collective (**ACC**), le champ `Bridage_CDC` est utilisé
            └─────────┬──────────┘
                      │ Signal DRM interne
            ┌─────────▼──────────┐
-           │  16 × IQ8+         │  Level 1 → 100 % export
-           │  Micro-onduleurs   │  Level 2 → 0 % export (ACI)
+           │  Micro-onduleurs   │  Level 1 → 100 % export
+           │  Enphase IQ8+      │  Level 2 → 0 % export (ACI)
            └────────────────────┘          talon % export (ACC)
 ```
 
 ### Avec Home Assistant (optionnel — monitoring)
 
 ```
- autonome (bridage) ──────────────────────────────────┐
+Shelly autonome (bridage) ──────────────────────────────────┐
                                                             │
 Home Assistant                                              │
   • REST sensor 3ERL (toutes les 15 min)                    │
@@ -99,7 +126,7 @@ Home Assistant                                              │
   • Historique graphique 24h                                │
   • Override manuel (mode On / Off)          ──────────────►│
                                                             ▼
-                                               switch.buanderie__emphase
+                                               switch.shelly_buanderie
 ```
 
 ---
@@ -110,9 +137,9 @@ Home Assistant                                              │
 .
 ├── README.md
 │
-├── /
-│   ├── _3erl_aci.js          # Script autonome mode ACI
-│   └── _3erl_acc.js          # Script autonome mode ACC
+├── shelly/
+│   ├── shelly_3erl_aci.js          # Script autonome mode ACI
+│   └── shelly_3erl_acc.js          # Script autonome mode ACC
 │
 ├── home-assistant/                  # OPTIONNEL — monitoring uniquement
 │   ├── packages/
@@ -140,7 +167,7 @@ Chemin : **Appareils → Passerelle → Limiter la production via relais sur Por
 |---|---|
 | Cible de la limitation | **Exportation** |
 | Valeur de référence | Capacité installée en AC [W] |
-| Capacité maximale | 6 200 W |
+| Capacité maximale | Votre puissance AC en W |
 | Nb paramètres de relais | 4 |
 | Nb niveaux à régler | 2 |
 | Limitation par défaut | 100 % |
@@ -157,12 +184,12 @@ Chemin : **Appareils → Passerelle → Limiter la production via relais sur Por
 > ⚠️ **Mode ACC — calcul du talon Level 2 :**
 > ```
 > % Level 2 = (talon_maison_W + talon_total_voisins_ACC_W) / puissance_AC_W × 100
-> Exemple : (200 + 500) / 6200 × 100 = 11.3 % → arrondir à 12 %
+> Exemple : (200 + 500) / 6000 × 100 = 11.7 % → arrondir à 12 %
 > ```
 
 ---
 
-### 2. Câblage Shelly 1 Mini Gen3 → Envoy
+### 2. Câblage Shelly → Envoy
 
 Les bornes **Com** et **1/5** de l'Envoy sont des entrées numériques basse
 tension. **Ne jamais connecter du 230V sur ces bornes.**
@@ -189,7 +216,7 @@ Shelly 1 Mini Gen3         Envoy-S Metered EU
 
 ### 3. Script Shelly (mode autonome)
 
-Le script tourne **directement sur le Shelly 1 Mini Gen3 **, sans aucune dépendance
+Le script tourne **directement sur le Shelly**, sans aucune dépendance
 externe. Il interroge l'API 3ERL et pilote son propre relais.
 
 **Choisir le bon script :**

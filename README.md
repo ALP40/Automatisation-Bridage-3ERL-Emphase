@@ -53,11 +53,9 @@ En autoconsommation collective (**ACC**), le champ `Bridage_CDC` est utilisé
 | Composant | Modèle | Firmware / Version |
 |---|---|---|
 | Passerelle solaire | Enphase Envoy-S Metered EU | d8.3.5528 |
-| Micro-onduleurs | 16 × Enphase IQ8+ | — |
 | Puissance installée | 16 × 405 Wc = 6.48 kWc | Réf. AC : 6 200 W |
 | Relais de commande | Shelly Plus 1 | firmware récent |
 | Domotique | Home Assistant | **Optionnel** — monitoring uniquement |
-| Région | Landes (40), France | — |
 
 ---
 

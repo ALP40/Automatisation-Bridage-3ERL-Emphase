@@ -1,4 +1,4 @@
-# Bridage 3ERL — Enphase Envoy-S Metered EU + Shelly Plus 1
+# Bridage 3ERL — Enphase Envoy-S Metered EU + Shelly Plus 1 (SNSW-001X16EU)
 
 > Coupure automatique de l'injection solaire sur signal de prix négatif 3ERL,
 > via un contact sec Shelly Plus 1 sur le port DRM de la passerelle Enphase.

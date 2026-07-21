@@ -334,7 +334,7 @@ même pendant les périodes de bridage.
 
 ## Crédits
 
-- **3ERL** — [https://3erl.fr](https://3erl.fr) — API publique de bridage
+- **3ERL** — [https://3erl.fr](https://3erl.fr) — Association responsable d’équilibre et d’achat d’électricité
 - **Mathieu Carbou** — [https://github.com/mathieucarbou](https://github.com/mathieucarbou) — [gist original](https://gist.github.com/mathieucarbou/8d83d25247821e85a693dea61fe4f0d2) dont ce projet est adapté
 - **Enphase** — [https://enphase.com](https://enphase.com) — Documentation Envoy-S Metered EU, port DRM
 - **SiSol** — [https://sisol.fr](https://sisol.fr) — Plateforme d'autoconsommation collective (ACC)

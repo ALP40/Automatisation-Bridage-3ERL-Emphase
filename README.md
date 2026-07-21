@@ -1,4 +1,4 @@
-# Bridage 3ERL — Enphase Envoy-S Metered EU + Shelly Plus 1 (SNSW-001X16EU)
+# Bridage 3ERL — Enphase Envoy-S Metered EU + Shelly 1 Mini Gen3
 
 > Coupure automatique de l'injection solaire sur signal de prix négatif 3ERL,
 > via un contact sec Shelly Plus 1 sur le port DRM de la passerelle Enphase.
@@ -54,7 +54,7 @@ En autoconsommation collective (**ACC**), le champ `Bridage_CDC` est utilisé
 |---|---|---|
 | Passerelle solaire | Enphase Envoy-S Metered EU | d8.3.5528 |
 | Puissance installée | 16 × 405 Wc = 6.48 kWc | Réf. AC : 6 200 W |
-| Relais de commande | Shelly Plus 1 | firmware récent |
+| Relais de commande | Shelly 1 Mini Gen3| firmware récent |
 | Domotique | Home Assistant | **Optionnel** — monitoring uniquement |
 
 ---
@@ -72,7 +72,7 @@ En autoconsommation collective (**ACC**), le champ `Bridage_CDC` est utilisé
 └────────────────────┬────────────────────────────┘
                      │ HTTP GET toutes les 15 min
            ┌─────────▼──────────┐
-           │   Shelly Plus 1    │  Script mJS autonome
+           │   Shelly 1 Mini    │  Script mJS autonome
            │  (script embarqué) │  Aucune dépendance externe
            └─────────┬──────────┘
                      │ Contact sec  I → 1/5  /  O → Com

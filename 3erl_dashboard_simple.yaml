@@ -1,0 +1,98 @@
+# ============================================================
+# DASHBOARD LOVELACE — Monitoring bridage 3ERL + Envoy
+# Package simplifié (sans Zendure, sans PRE+/PRD3 avancé)
+# À coller dans l'éditeur de carte (Modifier → Éditeur YAML)
+# ============================================================
+
+type: vertical-stack
+cards:
+
+  # ----------------------------------------------------------
+  # CARTE 1 — Statut 3ERL temps réel
+  # ----------------------------------------------------------
+  - type: entities
+    title: "Statut 3ERL"
+    entities:
+      - entity: binary_sensor.3erl_bridage_demande
+        name: "Bridage ACI demandé (3ERL)"
+        icon: mdi:car-speed-limiter
+
+      - entity: binary_sensor.3erl_bridage_cdc_demande
+        name: "Bridage ACC demandé (3ERL)"
+        icon: mdi:car-speed-limiter
+
+      - entity: sensor.3erl_tendance_du_jour
+        name: "Tendance du jour"
+        icon: mdi:trending-up
+
+      - entity: sensor.3erl_dernier_pre
+        name: "Dernier PRE+ (€/MWh)"
+        icon: mdi:currency-eur
+
+      - entity: sensor.3erl_estimation_jour_prd4
+        name: "Estimation journalière (€/MWh)"
+        icon: mdi:chart-line
+
+      - entity: sensor.3erl_bridage_long_terme
+        name: "Ne pas injecter avant (h)"
+        icon: mdi:clock-alert
+
+      - entity: sensor.3erl_heure_update
+        name: "Dernière MAJ 3ERL"
+        icon: mdi:clock-outline
+
+  # ----------------------------------------------------------
+  # CARTE 2 — Puissances Envoy temps réel
+  # ----------------------------------------------------------
+  - type: entities
+    title: "Puissances Envoy"
+    entities:
+      - entity: sensor.envoy_122207077060_production_pv
+        name: "Production solaire (W)"
+        icon: mdi:solar-power
+
+      - entity: sensor.envoy_122207077060_consommation_electrique_actuelle
+        name: "Consommation maison (W)"
+        icon: mdi:home-lightning-bolt
+
+      - entity: sensor.envoy_122207077060_current_net_power_consumption
+        name: "Flux réseau (W) — négatif = export"
+        icon: mdi:transmission-tower
+
+  # ----------------------------------------------------------
+  # CARTE 3 — Contrôle Shelly
+  # ----------------------------------------------------------
+  - type: entities
+    title: "Contrôle relais"
+    entities:
+      - entity: switch.buanderie_shelly_emphase
+        name: "Relais Shelly (état)"
+        icon: mdi:electric-switch
+
+      - entity: binary_sensor.inverters_zero_inject
+        name: "Zero-Inject actif"
+        icon: mdi:transmission-tower-off
+
+      - entity: input_select.inverters_zero_inject_mode
+        name: "Mode override HA"
+        icon: mdi:cog
+
+      - entity: input_boolean.test_bridage_3erl
+        name: "Test manuel"
+        icon: mdi:toggle-switch
+
+  # ----------------------------------------------------------
+  # CARTE 4 — Graphique historique 24h
+  # ----------------------------------------------------------
+  - type: history-graph
+    title: "Export vs bridage (24h)"
+    hours_to_show: 24
+    entities:
+      - entity: sensor.envoy_122207077060_current_net_power_consumption
+        name: "Flux réseau (W)"
+      - entity: binary_sensor.3erl_bridage_demande
+        name: "Bridage 3ERL"
+      - entity: switch.buanderie_shelly_emphase
+        name: "Relais Shelly"
+      - entity: sensor.3erl_dernier_pre
+        name: "PRE+ (€/MWh)"

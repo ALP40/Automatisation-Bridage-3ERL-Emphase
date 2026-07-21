@@ -1,0 +1,322 @@
+##########
+# 3ERL Monitoring — Package Home Assistant simplifié
+# Surveillance et monitoring du bridage 3ERL + Envoy-S Metered EU
+#
+# Ce package est OPTIONNEL. Le bridage est géré de façon autonome
+# par le script Shelly (shelly_3erl_aci.js ou shelly_3erl_acc.js).
+# HA apporte uniquement : dashboard, notifications, historique.
+#
+# Matériel :
+#   - Enphase Envoy-S Metered EU firmware d8.3.5528
+#   - 16 panneaux 405 Wc → 6.48 kWc / référence AC : 6.2 kW
+#   - Shelly Plus 1 câblé I→1/5 et O→Com sur le connecteur edge Envoy
+#
+# Entités Envoy confirmées :
+#   sensor.envoy_122207077060_production_pv
+#   sensor.envoy_122207077060_consommation_electrique_actuelle
+#   sensor.envoy_122207077060_current_net_power_consumption
+#   sensor.envoy_122207077060_lifetime_net_energy_production
+#
+# Entité Shelly confirmée :
+#   switch.buanderie_shelly_emphase
+##########
+
+# ============================================================
+# INPUT SELECT — contrôle manuel du bridage
+# ============================================================
+
+input_select:
+
+  inverters_zero_inject_mode:
+    name: "Zero-Inject mode"
+    options:
+      - "Auto"   # suit le signal 3ERL (piloté par le script Shelly)
+      - "On"     # bridage forcé via HA (override manuel)
+      - "Off"    # pas de bridage via HA (override manuel)
+
+# ============================================================
+# INPUT BOOLEAN — test manuel du relais
+# ============================================================
+
+input_boolean:
+
+  test_bridage_3erl:
+    name: "Test bridage 3ERL (manuel)"
+    icon: mdi:toggle-switch
+
+# ============================================================
+# REST — API 3ERL publique
+#
+# URL     : https://3erl.fr/api.json
+# Update  : minutes :03, :18, :33, :48 (± quelques secondes)
+# User-Agent requis par l'hébergeur pour systèmes automatisés
+#
+# scan_interval élevé : le polling automatique est quasi désactivé.
+# La mise à jour est pilotée par l'automation [43]
+# calée sur les minutes :05, :20, :35, :50.
+# Retry conditionnel toutes les minutes si données absentes ou > 20 min.
+# ============================================================
+
+rest:
+  - resource: "https://3erl.fr/api.json"
+    scan_interval: 3600
+    headers:
+      User-Agent: "HomeAssistant/3ERL-Monitoring"
+
+    binary_sensor:
+
+      - name: "3ERL: Bridage Demandé"
+        icon: "mdi:car-speed-limiter"
+        unique_id: "347A6F4D-6B09-4A20-9C2C-D611ED23EF4B"
+        # ACI : 1 = bridage recommandé, 0 = injection libre
+        value_template: "{{ value_json['Bridage'] }}"
+
+      - name: "3ERL: Bridage CDC Demandé"
+        icon: "mdi:car-speed-limiter"
+        unique_id: "B6DC9FBF-DDD0-423F-B9A2-A46CF52EC8CA"
+        # ACC : 1 = bridage recommandé, 0 = injection libre
+        value_template: "{{ value_json['Bridage_CDC'] }}"
+
+    sensor:
+
+      - name: "3ERL: Tendance du jour"
+        icon: "mdi:trending-up"
+        unique_id: "31F1BED4-8100-44A4-88BA-DB45450611CF"
+        value_template: |
+          {% set data = value_json['PREP_Profile'] %}
+          {% if data == '3+' %}   🟢🟢🟢
+          {% elif data == '2+' %} 🟢🟢
+          {% elif data == '1+' %} 🟢
+          {% elif data == '0' %}  ⚠️
+          {% elif data == '1-' %} ⛔️
+          {% elif data == '2-' %} ⛔️⛔️
+          {% elif data == '3-' %} ⛔️⛔️⛔️
+          {% else %}              ⁉️
+          {% endif %}
+        json_attributes:
+          - Heure_Update
+
+      - name: "3ERL: Dernier PRE+"
+        icon: "mdi:currency-eur"
+        unique_id: "A1B2C3D4-E5F6-7890-ABCD-EF1234567890"
+        value_template: "{{ value_json['Dernier_PREP'] }}"
+        unit_of_measurement: "€/MWh"
+
+      - name: "3ERL: Estimation jour (PRD4)"
+        icon: "mdi:chart-line"
+        unique_id: "B2C3D4E5-F6A7-8901-BCDE-F12345678901"
+        # Valeur finale utilisée pour la rémunération ACI
+        value_template: "{{ value_json['PRD4'] }}"
+        unit_of_measurement: "€/MWh"
+
+      - name: "3ERL: Heure update"
+        icon: "mdi:clock-outline"
+        unique_id: "C3D4E5F6-A7B8-9012-CDEF-123456789012"
+        value_template: "{{ value_json['Heure_Update'] }}"
+
+      - name: "3ERL: Bridage Long Terme"
+        icon: "mdi:clock-alert"
+        unique_id: "D4E5F6A7-B8C9-0123-DEF0-234567890123"
+        # Heure avant laquelle il est déconseillé d'injecter
+        value_template: "{{ value_json['Bridage_Long_Terme'] }}"
+        unit_of_measurement: "h"
+
+# ============================================================
+# TEMPLATE BINARY SENSOR
+# Décision de bridage pour les overrides manuels via HA
+# En mode Auto : le script Shelly gère le bridage de façon autonome
+# En mode On/Off : HA peut forcer l'état via les automations [50/51]
+# ============================================================
+
+template:
+
+  - binary_sensor:
+
+      - name: "Inverters Zero-Inject"
+        unique_id: "12E68C95-83ED-41EF-86E6-A0295FC2458C"
+        state: >-
+          {% set mode = states('input_select.inverters_zero_inject_mode') %}
+          {% set aci  = states('binary_sensor.3erl_bridage_demande') %}
+          {{ "on" if mode == "On"
+             or (mode == "Auto" and aci == "on")
+             else "off" }}
+        attributes:
+          raison: >-
+            {% set mode = states('input_select.inverters_zero_inject_mode') %}
+            {% set aci  = states('binary_sensor.3erl_bridage_demande') %}
+            {% if mode == "On" %}
+              Forcé ON (override manuel HA)
+            {% elif mode == "Off" %}
+              Forcé OFF (override manuel HA)
+            {% elif aci == "on" %}
+              Bridage actif — signal 3ERL ACI
+            {% else %}
+              Pas de bridage demandé par 3ERL
+            {% endif %}
+
+  - sensor:
+
+      # Énergie totale injectée — source compteur natif Envoy (MWh → kWh)
+      - name: "Électricité: Énergie injectée (Envoy)"
+        unique_id: "F3A4B5C6-2D3E-4F5A-9B6C-8D9E0F1A2B3C"
+        unit_of_measurement: "kWh"
+        device_class: energy
+        state_class: total_increasing
+        state: >-
+          {{ (states('sensor.envoy_122207077060_lifetime_net_energy_production')|float(0) * 1000) | round(3) }}
+
+# ============================================================
+# UTILITY METER — compteur quart-horaire de l'énergie injectée
+# ============================================================
+
+utility_meter:
+
+  grid_energy_returned_meter_quarter_hourly:
+    name: "Grid Energy Returned — Quarter Hourly"
+    unique_id: "798D017B-F9E8-4131-AABA-BB645DAFCFC4"
+    source: sensor.electricite_energie_injectee_envoy
+    cycle: quarter-hourly
+
+# ============================================================
+# AUTOMATIONS
+# ============================================================
+
+automation:
+
+  # ----------------------------------------------------------
+  # [40] Notification changement d'état zero-inject
+  # Informe quand le Shelly bascule (signal 3ERL ou override HA)
+  # ----------------------------------------------------------
+  - id: "0000000000040"
+    alias: "Solar: Notify Zero-Inject State Change"
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.inverters_zero_inject
+        to: "on"
+      - trigger: state
+        entity_id: binary_sensor.inverters_zero_inject
+        from: "on"
+        to: "off"
+      - trigger: homeassistant
+        event: start
+    conditions: []
+    actions:
+      - if:
+          - condition: state
+            entity_id: binary_sensor.inverters_zero_inject
+            state: "on"
+        then:
+          - action: notify.mobile_app_redmi_alain
+            data:
+              message: >-
+                [SOLAR] Zero-Inject: ON
+                ({{ state_attr('binary_sensor.inverters_zero_inject', 'raison') }})
+      - if:
+          - condition: state
+            entity_id: binary_sensor.inverters_zero_inject
+            state: "off"
+        then:
+          - action: notify.mobile_app_redmi_alain
+            data:
+              message: >-
+                [SOLAR] Zero-Inject: OFF
+                ({{ state_attr('binary_sensor.inverters_zero_inject', 'raison') }})
+
+  # ----------------------------------------------------------
+  # [43] Mise à jour API 3ERL
+  # Publications 3ERL : :03, :18, :33, :48
+  # Interrogation HA  : :05, :20, :35, :50 (marge 2 min)
+  # Retry toutes les minutes si données absentes ou > 20 min
+  # ----------------------------------------------------------
+  - id: "0000000000043"
+    alias: "Solar: Update API 3ERL"
+    triggers:
+      - trigger: homeassistant
+        event: start
+      - trigger: time_pattern
+        minutes: /1
+    conditions:
+      - condition: or
+        conditions:
+          - condition: template
+            value_template: "{{ now().minute in [5, 20, 35, 50] }}"
+          - condition: template
+            value_template: >-
+              {{ states('binary_sensor.3erl_bridage_demande') in ['unavailable', 'unknown']
+                 or (states('sensor.3erl_heure_update') not in ['unavailable', 'unknown']
+                     and (now() - strptime(states('sensor.3erl_heure_update'), '%d/%m/%Y %H:%M')) > timedelta(minutes=20)) }}
+    actions:
+      - action: homeassistant.update_entity
+        data:
+          entity_id:
+            - binary_sensor.3erl_bridage_demande
+            - binary_sensor.3erl_bridage_cdc_demande
+            - sensor.3erl_tendance_du_jour
+            - sensor.3erl_dernier_pre
+            - sensor.3erl_estimation_jour_prd4
+            - sensor.3erl_heure_update
+            - sensor.3erl_bridage_long_terme
+
+  # ----------------------------------------------------------
+  # [50] Override HA : forcer le bridage (mode On)
+  # Agit EN PLUS du script Shelly autonome
+  # ----------------------------------------------------------
+  - id: "0000000000050"
+    alias: "Solar: Override HA — Activer bridage Shelly"
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.inverters_zero_inject
+        to: "on"
+    conditions:
+      # Ne forcer via HA que si on est en mode On (override manuel)
+      # En mode Auto, le script Shelly gère seul
+      - condition: state
+        entity_id: input_select.inverters_zero_inject_mode
+        state: "On"
+    actions:
+      - action: switch.turn_on
+        target:
+          entity_id: switch.buanderie_shelly_emphase
+    mode: single
+
+  # ----------------------------------------------------------
+  # [51] Override HA : forcer l'arrêt du bridage (mode Off)
+  # ----------------------------------------------------------
+  - id: "0000000000051"
+    alias: "Solar: Override HA — Désactiver bridage Shelly"
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.inverters_zero_inject
+        to: "off"
+    conditions:
+      - condition: state
+        entity_id: input_select.inverters_zero_inject_mode
+        state: "Off"
+    actions:
+      - action: switch.turn_off
+        target:
+          entity_id: switch.buanderie_shelly_emphase
+    mode: single
+
+  # ----------------------------------------------------------
+  # [52] Sécurité : capteur 3ERL indisponible > 20 min
+  # En mode Auto uniquement — le script Shelly gère aussi ce cas
+  # mais HA ajoute une couche de sécurité supplémentaire
+  # ----------------------------------------------------------
+  - id: "0000000000052"
+    alias: "Solar: Sécurité capteur 3ERL indisponible"
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.3erl_bridage_demande
+        to: "unavailable"
+        for:
+          minutes: 20
+    conditions:
+      - condition: state
+        entity_id: input_select.inverters_zero_inject_mode
+        state: "Auto"
+    actions:
+      - action: switch.turn_off
+        target:
+          entity_id: switch.buanderie_shelly_emphase
+    mode: single

@@ -250,7 +250,7 @@ externe. Il interroge l'API 3ERL et pilote son propre relais.
 
 ```
 3ERL publie aux minutes  : :03, :18, :33, :48
-Script interroge aux     : :05, :20, :35, :50  (marge 2 min)
+Script interroge aux     : :04, :19, :34, :49  (marge 1 min)
 Retry si données absentes: toutes les minutes
 User-Agent envoyé        : Shelly/3ERL-Zero-Inject-ACI
 ```
@@ -334,7 +334,7 @@ même pendant les périodes de bridage.
 
 ## Crédits
 
-- **3ERL** — [https://3erl.fr](https://3erl.fr) — Association responsable d’équilibre et d’achat d’électricité
+- **3ERL** — [https://3erl.fr](https://3erl.fr) — API publique de bridage
 - **Mathieu Carbou** — [https://github.com/mathieucarbou](https://github.com/mathieucarbou) — [gist original](https://gist.github.com/mathieucarbou/8d83d25247821e85a693dea61fe4f0d2) dont ce projet est adapté
 - **Enphase** — [https://enphase.com](https://enphase.com) — Documentation Envoy-S Metered EU, port DRM
 - **SiSol** — [https://sisol.fr](https://sisol.fr) — Plateforme d'autoconsommation collective (ACC)

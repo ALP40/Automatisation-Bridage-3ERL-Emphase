@@ -30,7 +30,7 @@ var TIMEOUT_SEC = 10;
 var INTERVAL_MS = 60 * 1000;
 var MAX_AGE_MS  = 20 * 60 * 1000;
 
-var UPDATE_MINUTES = [5, 20, 35, 50];
+var UPDATE_MINUTES = [4, 19, 34, 49];
 
 var lastBridageValue = -1;
 var lastUpdateMs     = 0;
